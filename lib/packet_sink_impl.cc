@@ -31,10 +31,11 @@
 #include <cstring>
 #include <gnuradio/blocks/count_bits.h>
 #include <iostream>
+#include        <chrono>
 
 #define ZWAVE 0x01 //Select ZWAVE
 
-//#define verbose
+#define verbose
  #define CRC_printing
 
 namespace gr {
@@ -89,6 +90,7 @@ int ninput = ninput_items[0];
 int count=0;
 
 while(count < ninput){
+auto start=std::chrono::high_resolution_clock::now();
     switch(state){
         case PREAMBLE_SEARCH :      //Looking for preamble if found go to next state
             while (count < ninput) {
@@ -99,6 +101,22 @@ while(count < ninput){
                 if((frame_shift_reg & 0x00FFFFFF) == 0x005555F0){
                  #ifdef verbose
                     std::cout << "Preamble found : "<< std::hex <<  frame_shift_reg << std::endl;
+                    // auto diff = std::chrono::high_resolution_clock::now(); // get difference 
+                    // //auto nsec = std::chrono::duration_cast<std::chrono::nanoseconds>(diff);
+                    // std::cout << "time: " << diff << " nanoseconds" << std::endl;
+                      // std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+
+                      // std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(t2);
+
+                      // std::cout << "It took me " << time_span.count() << " seconds.";
+         start = std::chrono::high_resolution_clock::now();
+        // do some work
+        //std::vector<int> v(size, 42);
+        //sink = std::accumulate(v.begin(), v.end(), 0u); // make sure it's a side effect
+        // record end time
+        // auto end = std::chrono::high_resolution_clock::now();
+        // std::chrono::duration<double> diff = end - start;
+        // std::cout << " ints : " << diff.count() << " s\n";
                  #endif
                  frame_shift = 16;
                  state = HEADER_READING;
@@ -227,6 +245,14 @@ while(count < ninput){
                         // pmt::pmt_t payload = pmt::make_blob(buf, (frame_struct.length+0 ));
                         message_port_pub(pmt::mp("out"), pmt::cons(meta, payload));
                         data_shift=0;
+        //auto start = std::chrono::high_resolution_clock::now();
+        // do some work
+        //std::vector<int> v(size, 42);
+        //sink = std::accumulate(v.begin(), v.end(), 0u); // make sure it's a side effect
+        // record end time
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> diff = end - start;
+        std::cout << " ints : " << diff.count() << " s\n";
                         state = PREAMBLE_SEARCH;
 #ifdef verbose_state
     cout << "state = 0" << endl;

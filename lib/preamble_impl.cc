@@ -93,7 +93,7 @@ void preamble_impl::general_work (pmt::pmt_t msg){
 //    for(int toto=0;toto< (PREAMBLE_SIZE+data_len-8+2);toto++)  preamble[toto] ^=  0xff;
 
 	pmt::pmt_t packet = pmt::make_blob(preamble, data_len-8 + 1+1+PREAMBLE_SIZE); //padding of 1 octets
-
+std::cout << "Preamble sending : "<< std::hex <<  0x55 << std::endl;
 	message_port_pub(pmt::mp("out"), pmt::cons(pmt::PMT_NIL, packet));
 	}
     }
