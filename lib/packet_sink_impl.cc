@@ -1,53 +1,37 @@
 /* -*- c++ -*- */
 /*
- * Copyright 2013 Airbus DS CyberSecurity.
- * Authors: Jean-Michel Picod, Arnaud Lebrun, Jonathan Christofer Demay
+ * Copyright 2021 gr-zwave author.
  *
- * This is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3, or (at your option)
- * any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this software; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 51 Franklin Street,
- * Boston, MA 02110-1301, USA.
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include <gnuradio/io_signature.h>
 #include "packet_sink_impl.h"
+#include <gnuradio/io_signature.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <cstring>
 #include <gnuradio/blocks/count_bits.h>
 #include <iostream>
+#include        <chrono>
 
 #define ZWAVE 0x01 //Select ZWAVE
-
-//#define verbose
- #define CRC_printing
+#define verbose
+#define CRC_printing
 
 namespace gr {
-  namespace zwave {
+namespace zwave {
 
-    packet_sink::sptr
-    packet_sink::make()
-    {
-      return gnuradio::get_initial_sptr
-        (new packet_sink_impl());
-    }
+#pragma message("set the following appropriately and remove this warning")
+using input_type = char;
+#pragma message("set the following appropriately and remove this warning")
+using output_type = float;
+packet_sink::sptr packet_sink::make()
+{
+    return gnuradio::make_block_sptr<packet_sink_impl>();
+}
 
-    //"CRC" computing :
+//"CRC" computing :
 void packet_sink_impl::crc_computing(void)
 {
 if(frame_struct.length >= 7){
@@ -62,11 +46,15 @@ else
     }
 }
 
-    //Constructor
-    packet_sink_impl::packet_sink_impl()
-      : gr::block("packet_sink",
-              gr::io_signature::make(1, 1, sizeof(char)),
-              gr::io_signature::make(0, 0, 0))
+/*
+ * The private constructor
+ */
+packet_sink_impl::packet_sink_impl()
+    : gr::block("packet_sink",
+                gr::io_signature::make(
+                    1 /* min inputs */, 1 /* max inputs */, sizeof(input_type)),
+                gr::io_signature::make(
+                    0 /* min outputs */, 0 /*max outputs */, 0*sizeof(output_type)))
 {
     state = PREAMBLE_SEARCH;
     data_shift = 0;
@@ -74,11 +62,31 @@ else
     frame_struct.CRC= 0xFF;
     message_port_register_out(pmt::mp("out"));
 }
-    //Destructor
-    packet_sink_impl::~packet_sink_impl()
-    {
-    }
 
+/*
+ * Our virtual destructor.
+ */
+packet_sink_impl::~packet_sink_impl() {}
+
+/*
+int packet_sink_impl::general_work(int noutput_items,
+                                   gr_vector_int& ninput_items,
+                                   gr_vector_const_void_star& input_items,
+                                   gr_vector_void_star& output_items)
+{
+    auto in = static_cast<const input_type*>(input_items[0]);
+    auto out = static_cast<output_type*>(output_items[0]);
+
+#pragma message("Implement the signal processing in your block and remove this warning")
+    // Do <+signal processing+>
+    // Tell runtime system how many input items we consumed on
+    // each input stream.
+    consume_each(noutput_items);
+
+    // Tell runtime system how many output items we produced.
+    return noutput_items;
+}
+*/
 int packet_sink_impl::general_work (int noutput_items,
                        gr_vector_int &ninput_items,
                        gr_vector_const_void_star &input_items,
@@ -87,7 +95,8 @@ int packet_sink_impl::general_work (int noutput_items,
 const unsigned char *inbuf = (const unsigned char*)input_items[0];
 int ninput = ninput_items[0];
 int count=0;
-
+//auto start=std::chrono::high_resolution_clock::now();
+//start = std::chrono::high_resolution_clock::now();
 while(count < ninput){
     switch(state){
         case PREAMBLE_SEARCH :      //Looking for preamble if found go to next state
@@ -99,6 +108,7 @@ while(count < ninput){
                 if((frame_shift_reg & 0x00FFFFFF) == 0x005555F0){
                  #ifdef verbose
                     std::cout << "Preamble found : "<< std::hex <<  frame_shift_reg << std::endl;
+                    //start = std::chrono::high_resolution_clock::now();
                  #endif
                  frame_shift = 16;
                  state = HEADER_READING;
@@ -128,7 +138,6 @@ while(count < ninput){
                     }
                     else{
                         state=PREAMBLE_SEARCH;
-
                         break;
                     }
                 }
@@ -210,6 +219,9 @@ while(count < ninput){
                         #ifdef CRC_printing
                             crc_computing();
                             std::cout  << "CRC_debug : " << std::hex <<  frame_struct.CRC  << std::endl;
+                            //auto end = std::chrono::high_resolution_clock::now();
+                            //std::chrono::duration<double> diff = end - start;
+                            //std::cout << " ints : " << diff.count() << " s\n";
                         #endif
 
                         pmt::pmt_t meta = pmt::make_dict();
@@ -239,15 +251,13 @@ while(count < ninput){
     }
 
 }
-
+                           // auto end = std::chrono::high_resolution_clock::now();
+                            //std::chrono::duration<double> diff = end - start;
+                           // std::cout << " ints : " << diff.count() << " s\n";
 consume(0, ninput_items[0]);
 // Tell runtime system how many output items we produced => 0 cause we use  PDU.
 return 0;
 }
 
-
-
-
-  } /* namespace Zwave */
+} /* namespace zwave */
 } /* namespace gr */
-

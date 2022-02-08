@@ -19,6 +19,7 @@
 # Boston, MA 02110-1301, USA.
 
 install(FILES
+    zwave_packet_sink.block.yml
     zwave_preamble.block.yml
-    zwave_packet_sink.block.yml DESTINATION share/gnuradio/grc/blocks
+    DESTINATION share/gnuradio/grc/blocks
 )

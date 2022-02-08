@@ -1,22 +1,8 @@
 /* -*- c++ -*- */
 /*
- * Copyright 2013 Airbus DS CyberSecurity.
- * Authors: Jean-Michel Picod, Arnaud Lebrun, Jonathan Christofer Demay
+ * Copyright 2021 gr-zwave author.
  *
- * This is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3, or (at your option)
- * any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this software; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 51 Franklin Street,
- * Boston, MA 02110-1301, USA.
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 #ifndef INCLUDED_ZWAVE_PACKET_SINK_IMPL_H
@@ -27,11 +13,11 @@
 #define MAX_PDU_SIZE 47 //frame size not pdu
 
 namespace gr {
-  namespace zwave {
+namespace zwave {
 
-    class packet_sink_impl : public packet_sink
-    {
-     private:
+class packet_sink_impl : public packet_sink
+{
+private:
       // Nothing to declare in this block.
     	enum {PREAMBLE_SEARCH, SYNC_SEARCH, HEADER_READING, READ_DATA} state;
         unsigned int frame_shift_reg;
@@ -50,20 +36,20 @@ namespace gr {
         struct s_frame_struct  frame_struct;
         unsigned char buf[512];
 
+public:
+    packet_sink_impl();
+    ~packet_sink_impl();
+    void crc_computing(void);  
+    // Where all the action really happens
+    //void forecast(int noutput_items, gr_vector_int& ninput_items_required);
 
-     public:
-      packet_sink_impl();
-      ~packet_sink_impl();
-      void crc_computing(void);
+    int general_work(int noutput_items,
+                     gr_vector_int& ninput_items,
+                     gr_vector_const_void_star& input_items,
+                     gr_vector_void_star& output_items);
+};
 
-      int general_work(int noutput_items,
-		       gr_vector_int &ninput_items,
-		       gr_vector_const_void_star &input_items,
-		       gr_vector_void_star &output_items);
-    };
-
-  } // namespace Zwave
+} // namespace zwave
 } // namespace gr
 
 #endif /* INCLUDED_ZWAVE_PACKET_SINK_IMPL_H */
-

@@ -23,6 +23,7 @@
 ########################################################################
 install(FILES
     api.h
+    packet_sink.h
     preamble.h
-    packet_sink.h DESTINATION include/zwave
+    DESTINATION include/zwave
 )

@@ -1,51 +1,35 @@
 /* -*- c++ -*- */
 /*
- * Copyright 2013 Airbus DS CyberSecurity.
- * Authors: Jean-Michel Picod, Arnaud Lebrun, Jonathan Christofer Demay
+ * Copyright 2021 gr-zwave author.
  *
- * This is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3, or (at your option)
- * any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this software; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 51 Franklin Street,
- * Boston, MA 02110-1301, USA.
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include <gnuradio/io_signature.h>
 #include "preamble_impl.h"
+#include <gnuradio/io_signature.h>
 #include <string.h>
 #include <gnuradio/block_detail.h>
-
 #define ZWAVE 0x01
 #define PREAMBLE_SIZE 25 // <<<< of preamble table size
-
 namespace gr {
-  namespace zwave {
+namespace zwave {
 
-    preamble::sptr
-    preamble::make()
-    {
-      return gnuradio::get_initial_sptr
-        (new preamble_impl());
-    }
+#pragma message("set the following appropriately and remove this warning")
+using input_type = float;
+#pragma message("set the following appropriately and remove this warning")
+using output_type = float;
+preamble::sptr preamble::make() { return gnuradio::make_block_sptr<preamble_impl>(); }
 
-    //Construtor
-    preamble_impl::preamble_impl()
-      : gr::block("preamble",
-        gr::io_signature::make(0, 0, 0),
-        gr::io_signature::make(0, 0, 0))
+
+/*
+ * The private constructor
+ */
+preamble_impl::preamble_impl()
+    : gr::block("preamble",
+                gr::io_signature::make(
+                    0 /* min inputs */, 0 /* max inputs */, 0*sizeof(input_type)),
+                gr::io_signature::make(
+                    0 /* min outputs */, 0 /*max outputs */, 0*sizeof(output_type)))
 {
     int jojo=0;
     for(;jojo<PREAMBLE_SIZE;jojo++) preamble[jojo]=0x55;
@@ -55,16 +39,20 @@ namespace gr {
     message_port_register_out(pmt::mp("out"));
     message_port_register_in(pmt::mp("in"));
     set_msg_handler(pmt::mp("in"), boost::bind(&preamble_impl::general_work, this, _1));
-
 }
 
-    //Destructor
-    preamble_impl::~preamble_impl()
-    {
-    }
+/*
+ * Our virtual destructor.
+ */
+preamble_impl::~preamble_impl() {}
 
+//void preamble_impl::forecast(int noutput_items, gr_vector_int& ninput_items_required)
+//{
+//#pragma message( \
+//    "implement a forecast that fills in how many items on each input you need to produce noutput_items and remove this warning")
+//    /* <+forecast+> e.g. ninput_items_required[0] = noutput_items */
+//}
 
-    // """main""" function
 void preamble_impl::general_work (pmt::pmt_t msg){
 
 	if(pmt::is_eof_object(msg)) {
@@ -98,6 +86,5 @@ void preamble_impl::general_work (pmt::pmt_t msg){
 	}
     }
 
-  } /* namespace Zwave */
+} /* namespace zwave */
 } /* namespace gr */
-

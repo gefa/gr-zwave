@@ -1,6 +1,6 @@
 id: zwave_packet_sink
 label: packet_sink
-category: ZWAVE
+category: '[zwave]'
 
 templates:
   imports: import zwave
@@ -16,10 +16,12 @@ templates:
 inputs:
 -   domain: stream
     dtype: byte
+    multiplicity: '1'
 
 outputs:
 -   domain: message
     id: out
+    multiplicity: '1'
 
 #  'file_format' specifies the version of the GRC yml format used in the file
 #  and should usually not be changed.

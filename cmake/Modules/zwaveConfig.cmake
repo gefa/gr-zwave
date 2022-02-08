@@ -1,4 +1,5 @@
-INCLUDE(FindPkgConfig)
+find_package(PkgConfig)
+
 PKG_CHECK_MODULES(PC_ZWAVE zwave)
 
 FIND_PATH(

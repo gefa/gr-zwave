@@ -1,6 +1,6 @@
 id: zwave_preamble
 label: preamble
-category: ZWAVE
+category: '[zwave]'
 
 templates:
   imports: import zwave
