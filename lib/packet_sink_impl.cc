@@ -34,7 +34,7 @@
 
 #define ZWAVE 0x01 //Select ZWAVE
 
-//#define verbose
+#define verbose
  #define CRC_printing
 
 namespace gr {
@@ -50,13 +50,15 @@ namespace gr {
     //"CRC" computing :
 void packet_sink_impl::crc_computing(void)
 {
-if(frame_struct.length >= 7){
-
-    frame_struct.CRC= 0xFF;
-    for(int iter=0; iter<(frame_struct.length-1); iter++)     frame_struct.CRC ^= frame_struct.frame[iter];
-
+    if(frame_struct.length >= 7){
+        frame_struct.CRC= 0xFF;
+        int iter;
+        std::cout  << "CRC_rx : " << std::hex <<  frame_struct.frame[frame_struct.length-1]  << std::endl;
+        for(iter=0; iter<(frame_struct.length-1); iter++){
+            frame_struct.CRC ^= frame_struct.frame[iter];
+        }
     }
-else
+    else
     {
         //FIXME : Must return an error.........
     }
@@ -226,6 +228,24 @@ while(count < ninput){
                         // std::memcpy(buf+0, frame_struct.frame , (frame_struct.length ) );
                         // pmt::pmt_t payload = pmt::make_blob(buf, (frame_struct.length+0 ));
                         message_port_pub(pmt::mp("out"), pmt::cons(meta, payload));
+
+                    }
+                    else if ((data_shift/8) == (frame_struct.length+1)){
+                        // print entire packet, including received crc
+                        printf("Packet: ");
+                        for(int iter=0; iter<(frame_struct.length+1-1); iter++){
+                            //std::cout  << "Packet : " << std::hex <<  frame_struct.frame[iter]  << std::endl;
+                            printf("%02X ",frame_struct.frame[iter]);
+                            //frame_struct.CRC ^= frame_struct.frame[iter];
+                        }
+                        printf("%02X ",frame_struct.CRC);
+                        printf("\n");
+                        if (frame_struct.CRC == frame_struct.frame[frame_struct.length-1]){
+                            printf("CRC OK\n");
+                        }else{
+                            printf("CRC BAD\n");
+                        }
+
                         data_shift=0;
                         state = PREAMBLE_SEARCH;
 #ifdef verbose_state
